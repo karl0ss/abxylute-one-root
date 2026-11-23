@@ -1,0 +1,6 @@
+id=mtk1080unlock
+name=MTK 1080p60 Decoder Unlock
+version=v1.0
+versionCode=1
+author=karl
+description=Copies /vendor/etc media codec configs with c2.mtk.avc+hevc decoder performance-point-1920x1088 raised 30->60fps. Reboots framework view of caps so 1080p60 H.264/HEVC streams are accepted (XBox XBXPlay 1080p60). Systemless: uninstall module to revert.
