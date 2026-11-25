@@ -236,24 +236,24 @@ Both are needed. With only the SystemUI overlay, the phone UI appears but its
 The `NotificationShade` window then keeps input focus and **nothing but the shade
 responds to touch**.
 
-**Install (the order matters; keep a USB cable plugged in for recovery):**
+**Install:** Magisk app → Modules → Install from storage → `phonesystemui-v5.zip`
+(built by `magisk-phone-systemui/build.sh`) → Reboot. On the first boot, the module's
+`service.sh` enables both overlays, turns off the lock screen
+(`locksettings set-disabled true`, since the vendor one is no longer bound) and **reboots
+itself once**. It logs to `/data/local/tmp/phonesysui.log` and runs only once per
+install. Keep a USB cable handy for recovery.
 
-```bash
-adb shell locksettings set-disabled true     # no lock screen (the vendor one is no longer used)
-# Magisk app → Modules → Install from storage → phonesystemui-v4.zip → reboot
-adb shell cmd overlay enable uk.karl.phonesystemui.frameworkoverlay
-adb shell cmd overlay enable uk.karl.phonesystemui.overlay
-adb reboot
-```
-
-The overlays are *mutable* (not static), so they start **disabled** and can be turned
-off from adb **without root**:
+The overlays are *mutable* (not static), so they can be turned off from adb
+**without root**, and that sticks, because the first-run step won't re-enable them:
 
 ```bash
 adb shell cmd overlay disable uk.karl.phonesystemui.overlay
 adb shell cmd overlay disable uk.karl.phonesystemui.frameworkoverlay
 adb reboot
 ```
+
+Removing the module in Magisk removes the overlays, and `uninstall.sh` restores the
+lock-screen setting.
 
 Wireless debugging switches off when SystemUI changes, so have USB adb ready.
 If all else fails, hold volume-down during boot for Magisk safe mode (this disables all modules).

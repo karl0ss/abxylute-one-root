@@ -18,10 +18,10 @@ build() { # src-dir out-apk
     --no-resource-removal --no-resource-deduping
   "$BT/zipalign" -f 4 "$s/build/u.apk" "$s/build/a.apk"
   mkdir -p "$(dirname "$out")"
-  "$BT/apksigner" sign --ks "$KS" --ks-pass pass:android --out "$out" "$s/build/a.apk"
+  "$BT/apksigner" sign --ks "$KS" --ks-pass pass:android --v4-signing-enabled false --out "$out" "$s/build/a.apk"
 }
 build overlay-src           system/product/overlay/PhoneSystemUIOverlay/PhoneSystemUIOverlay.apk
 build framework-overlay-src system/product/overlay/PhoneSystemUIFrameworkOverlay/PhoneSystemUIFrameworkOverlay.apk
 v=$(grep '^version=' module.prop | cut -d= -f2)
-rm -f "phonesystemui-$v.zip"; zip -q -r "phonesystemui-$v.zip" module.prop system
+rm -f "phonesystemui-$v.zip"; zip -q -r "phonesystemui-$v.zip" module.prop service.sh uninstall.sh system
 echo "Built $(pwd)/phonesystemui-$v.zip"

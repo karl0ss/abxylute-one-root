@@ -1,6 +1,6 @@
 id=phonesystemui
 name=Phone SystemUI (status bar + shade)
-version=v4
-versionCode=4
+version=v5
+versionCode=5
 author=karl0ss
 description=abxylute One: forces the phone SystemUI (status bar, notification shade, quick settings) instead of the TV one, and binds SystemUI as keyguard. Undo without root: adb shell cmd overlay disable uk.karl.phonesystemui.overlay && adb shell cmd overlay disable uk.karl.phonesystemui.frameworkoverlay, then reboot.
