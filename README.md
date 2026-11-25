@@ -284,6 +284,9 @@ Build from source with `magisk-phone-systemui/build.sh`.
 - **Vendor settings app without its background processes:** disables `OTAService`,
   `SettingsDailyCollectReceiver` and `FeatureProvider` (the `:ota` and `:feature` processes, about 260MB).
   The settings screen (Step 6 shortcut) still works.
+- **CPU governor `performance` → `schedutil`.** The firmware pins all 4 cores at 2.0GHz
+  permanently. schedutil still hits 2.0GHz under load, but at idle it spends about 70% of the time
+  at 850MHz, so the device runs cooler and the battery lasts longer.
 - **Hides the vendor keyguard** (`GamePadKeyGuard`, about 140MB). It's a *persistent* system app,
   so `pm disable` doesn't stop it: AMS starts it anyway. A Magisk `.replace` hides it.
   Only do this together with the phone SystemUI module (Step 7), which makes SystemUI the keyguard.

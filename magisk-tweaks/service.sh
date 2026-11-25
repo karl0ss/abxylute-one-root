@@ -29,6 +29,12 @@ for c in com.levelinfinite.southpole.gamepad.ota.OTAService \
 done
 for p in $P:ota $P:feature; do pid=$(pidof "$p") && kill "$pid" && echo "killed $p"; done
 
+# --- CPU governor: the firmware pins all 4 cores at 2.0GHz ('performance').
+# schedutil still ramps to 2.0GHz under load but idles at 850MHz (~70% of idle time).
+for g in /sys/devices/system/cpu/cpufreq/policy*/scaling_governor; do
+  echo schedutil > "$g" && echo "$g -> schedutil"
+done
+
 # --- wireless adb on a fixed port (legacy tcpip mode, still needs an authorised key)
 if [ "$(getprop service.adb.tcp.port)" != "5555" ]; then
   setprop service.adb.tcp.port 5555

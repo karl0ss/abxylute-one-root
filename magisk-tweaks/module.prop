@@ -1,6 +1,6 @@
 id=abxytweaks
-name=abxylute One tweaks (adb root, fixed adb port, vendor OTA off)
-version=v2
-versionCode=2
+name=abxylute One tweaks (adb root, fixed adb port, vendor bloat off, schedutil)
+version=v3
+versionCode=3
 author=karl0ss
-description=Grants adb shell root once (Magisk root_access=Apps and ADB), wireless adb on fixed port 5555, disables the vendor settings app's OTA service, telemetry receiver and feature provider, hides the persistent vendor keyguard app (unused with the phone SystemUI module). Log: /data/local/tmp/abxytweaks.log
+description=Grants adb shell root once (Magisk root_access=Apps and ADB), wireless adb on fixed port 5555, disables the vendor settings app's OTA service, telemetry receiver and feature provider, hides the persistent vendor keyguard app, CPU governor performance -> schedutil (unused with the phone SystemUI module). Log: /data/local/tmp/abxytweaks.log
