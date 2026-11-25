@@ -256,11 +256,48 @@ Removing the module in Magisk removes the overlays, and `uninstall.sh` restores 
 lock-screen setting.
 
 Wireless debugging switches off when SystemUI changes, so have USB adb ready.
-If all else fails, hold volume-down during boot for Magisk safe mode (this disables all modules).
+**Recovery if the device won't boot or won't take input:** with the tweaks module (Step 8)
+installed, `adb shell su -c 'touch /data/adb/modules/phonesystemui/remove' && adb reboot`
+works even while Android is crash-looping (adbd and magiskd are native). Without adb root,
+reflash your stock `boot_b` with mtkclient (Step 1 dumps), which disables Magisk entirely.
+Note that Magisk's "hold volume-down for safe mode" is unreliable here, because
+volume-down at power-on boots recovery on this device.
 
 Result: status bar with clock/battery, notification shade, quick settings with
 brightness, heads-up notifications, gesture nav; Lawnchair works normally.
 Build from source with `magisk-phone-systemui/build.sh`.
+
+---
+
+## Step 8 (optional): tweaks module (`magisk-tweaks/`)
+
+`abxytweaks` makes life with the device easier:
+
+- **adb root.** Out of the box, Magisk silently rejects `su` from adb (`su: request rejected (2000)`
+  in logcat, with no prompt and an empty Superuser tab). On ours, Magisk's database had **no
+  `root_access` setting and no policies**. The module sets `root_access=3` (apps and ADB)
+  and grants uid 2000 **once** (flag `/data/adb/.abxytweaks-adbroot-done`), so revoking
+  it in the Magisk app later sticks.
+- **Wireless adb on a fixed port 5555** (`service.adb.tcp.port`), so there's no hunting for the
+  random wireless-debugging port. It still needs an authorised adb key, but be aware that this
+  is root over the network for any authorised host.
+- **Vendor settings app without its background processes:** disables `OTAService`,
+  `SettingsDailyCollectReceiver` and `FeatureProvider` (the `:ota` and `:feature` processes, about 260MB).
+  The settings screen (Step 6 shortcut) still works.
+- **Hides the vendor keyguard** (`GamePadKeyGuard`, about 140MB). It's a *persistent* system app,
+  so `pm disable` doesn't stop it: AMS starts it anyway. A Magisk `.replace` hides it.
+  Only do this together with the phone SystemUI module (Step 7), which makes SystemUI the keyguard.
+
+With root, install modules straight from adb:
+`adb push x.zip /data/local/tmp/ && adb shell su -c 'magisk --install-module /data/local/tmp/x.zip'`.
+
+### Tried and rejected: Lawnchair as the recents provider
+
+Installing Lawnchair 15 systemlessly as a privileged app (with a privapp whitelist, since
+this firmware has `ro.control_privapp_permissions=enforce`) plus an overlay for
+`config_recentsComponentName` boots fine, but Lawnchair then crashes on start:
+`NoSuchFieldError: TransitionFilter.mNotFlags`. Its quickstep code needs Android 13+
+shell-transition APIs, and this device runs Android 12. Recents stays with AOSP Launcher3.
 
 ---
 

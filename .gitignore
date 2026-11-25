@@ -2,3 +2,4 @@ gamepad-settings-shortcut/build/
 *.keystore
 magisk-phone-systemui/*/build/
 magisk-phone-systemui/*.zip
+magisk-tweaks/*.zip
