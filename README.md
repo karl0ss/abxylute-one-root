@@ -143,8 +143,10 @@ This vendor ships a lot of junk. Freeze list (all reversible with `pm enable <pk
 # Tencent gamepad UI stack (keeps: keyguard = lockscreen!)
 pm disable-user -k com.levelinfinite.southpole.gamepad.launcher.mtk       # replace with Lawnchair/Nova
 pm disable-user -k com.levelinfinite.southpole.gamepad.recommend.mtk
-pm disable-user -k com.levelinfinite.southpole.gamepad.settings.mtk
 pm disable-user -k com.levelinfinite.southpole.gamepad.quicksetting.mtk
+# Optional: keep gamepad.settings enabled if you want the vendor controller settings
+# (key mapping, deadzones, OTA) via the shortcut app below.
+# pm disable-user -k com.levelinfinite.southpole.gamepad.settings.mtk
 
 # MTK junk
 for p in com.mediatek.omacp com.mediatek.simprocessor com.mediatek.duraspeed \
@@ -183,9 +185,35 @@ Notes:
 - Set a new default home (e.g. Lawnchair) *before* freezing the vendor launcher:
   `cmd role add-role-holder android.app.role.HOME app.lawnchair 0`
 
+- **Heads-up: this firmware has no Android status bar / notification shade at all.**
+  The vendor UI was the only brightness/notifications panel. Once it's frozen you
+  lose those quick controls, and re-enabling `quicksetting` + `launcher` (even as home)
+  did **not** bring the panel back for us. Use Settings → Display for brightness.
+  Adaptive brightness is on by default and runs quite dim.
+
 Result on ours: MemAvailable went ~1.2GB → 1.8-2.1GB, swap from ~700MB → ~80MB,
 and the "sluggish device" problem was mostly **memory pressure + kswapd churn**,
 not CPU or Wi-Fi.
+
+---
+
+## Step 6 (optional): GamePad Settings shortcut (`gamepad-settings-shortcut/`)
+
+The vendor controller settings (button mapping, stick/trigger deadzones, wallpaper,
+OTA) live in `com.levelinfinite.southpole.gamepad.settings.mtk`, which has **no
+launcher icon**: the vendor home screen was the only way in. Lawnchair can't open
+hidden activities, so this repo has a ~3KB app that adds a **GamePad Settings** icon
+to the app drawer and just opens `…settings.SettingsActivity`. No root needed.
+
+```bash
+adb shell pm enable com.levelinfinite.southpole.gamepad.settings.mtk
+adb install gamepad-settings-shortcut/GamePadSettings-shortcut.apk
+```
+
+To rebuild it yourself, run `gamepad-settings-shortcut/build.sh` (Android SDK
+build-tools 34 + platform 34; uses Docker for `javac` if there's no JDK). It signs
+with a throwaway local keystore. The prebuilt APK is signed with a different key, so
+uninstall it before installing your own build.
 
 ---
 
