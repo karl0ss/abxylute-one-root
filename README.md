@@ -4,7 +4,7 @@ Root, debloat and decoder-unlock toolkit for the **abxylute One** cloud handheld
 (MediaTek **MT8168**, 4GB RAM, Android 12, A/B (a/b) slots, 64GB eMMC, vendor
 build `yoyo20230104`).
 
-Everything in here was verified working on a real device (2026-11-23). The
+Everything in here was verified working on a real device (2026-11-23, extended 2026-11-25). The
 device bootloader is **completely unprotected** — SBC, SLA, DAA, root-cert all
 disabled — which makes the whole process unusually safe: every step is
 readable/writable and reversible, no exploits needed beyond standard MTK
@@ -24,6 +24,23 @@ BootROM automation.
 5. Install the `magisk-module/` in this repo through the Magisk app — it raises the
    MTK h264/hevc decoder 1080p performance point from 30fps → 60fps, systemless.
 6. Debloat (see list below) — most of it works **without root** via `adb shell pm disable-user`.
+7. *(optional)* `gamepad-settings-shortcut/`: an app-drawer icon for the vendor controller settings.
+8. *(optional)* `magisk-phone-systemui/`: the real Android status bar, notification shade and
+   quick settings (brightness!) instead of the firmware's TV SystemUI.
+9. *(optional)* `magisk-tweaks/`: adb root, wireless adb on port 5555, vendor OTA/keyguard
+   bloat off, CPU governor `schedutil`.
+
+### Where ours ended up
+
+Stock firmware + Magisk 31.1 with four modules (`mtk1080unlock`, `phonesystemui`,
+`abxytweaks`, Magisk's `hosts`) and Lawnchair as the home app. MemAvailable is about 2.0GB with
+swap almost empty (from ~1.2GB and ~700MB swap at stock), the CPU idles at 850MHz instead of a
+permanent 2.0GHz, and XBXPlay / XStreaming stream 1080p60 and Moonlight streams 1080p60 HEVC.
+
+**Not worth it:** a full LineageOS build (no device tree or vendor sources released). A Treble GSI
+is technically possible (Treble, VNDK 31, GKI 5.10, dynamic partitions), but it needs a
+bootloader unlock and a full wipe for little real gain on this SoC. The ambient light sensor
+is listed but never reports, so adaptive brightness does nothing.
 
 ---
 
@@ -97,7 +114,9 @@ We also patched `vbmeta_b` — AVB flags set to "verification disabled"
 Magisk boot, the classic recipe for locked devices. On this handheld that
 **bootloops**: the MTK LK rejects a flag-modified vbmeta, while happily booting
 an *unsigned, unverified* boot (because SBC is disabled and nothing is checked
-at all).
+at all). The underlying reason is that the **bootloader is still locked**
+(`ro.boot.verifiedbootstate=green`, `ro.boot.flash.locked=1`), so AVB flags are
+enforced even though boot itself isn't signature-checked.
 
 Symptom: logo → dark → logo → dark forever.
 
@@ -328,5 +347,10 @@ you the same:
 
 - Unroot: `mtk w boot_b dumps/boot_b.img` (active slot's original boot).
 - Reset a frozen package: `pm enable <pkg>`.
-- Module gone: uninstall in Magisk.
+- Module gone: uninstall in Magisk, or with adb root:
+  `adb shell su -c 'touch /data/adb/modules/<id>/remove' && adb reboot`
+  (module ids: `mtk1080unlock`, `phonesystemui`, `abxytweaks`).
+- Phone SystemUI off without root: `cmd overlay disable` both `uk.karl.phonesystemui.*` overlays, then reboot.
+- Vendor launcher back: `pm enable com.levelinfinite.southpole.gamepad.launcher.mtk`, then
+  `cmd role add-role-holder android.app.role.HOME com.levelinfinite.southpole.gamepad.launcher.mtk`.
 - Everything else byte-identical: dumps from step 1.
