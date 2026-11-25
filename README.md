@@ -28,7 +28,7 @@ BootROM automation.
 8. *(optional)* `magisk-phone-systemui/`: the real Android status bar, notification shade and
    quick settings (brightness!) instead of the firmware's TV SystemUI.
 9. *(optional)* `magisk-tweaks/`: adb root, wireless adb on port 5555, vendor OTA/keyguard
-   bloat off, CPU governor `schedutil`.
+   bloat off, CPU governor `schedutil`, working recents (swipe up and hold to close apps).
 
 ### Where ours ended up
 
@@ -306,6 +306,14 @@ Build from source with `magisk-phone-systemui/build.sh`.
 - **CPU governor `performance` → `schedutil`.** The firmware pins all 4 cores at 2.0GHz
   permanently. schedutil still hits 2.0GHz under load, but at idle it spends about 70% of the time
   at 850MHz, so the device runs cooler and the battery lasts longer.
+- **Working recents (closing apps).** The vendor's "gamepad mode" flag
+  (`settings get system gamepad_launcher_style`, which their console launcher leaves at `1`) makes
+  their modified SystemUI skip binding Launcher3's recents service
+  (`OverviewProxyService: mIsEnabled=false` in `dumpsys`), so swipe-up-and-hold does nothing
+  and there's no way to close apps. If the flag is set, the module puts it to `0` and restarts
+  SystemUI. Clearing it makes the vendor app switch Home to Launcher3, so it puts Lawnchair back as
+  Home. This is the same flag as "Switch to Tablet Mode" in the vendor settings; the module just
+  makes it stick. Recents itself is AOSP Launcher3's fallback overview: swipe a card up to close it.
 - **Hides the vendor keyguard** (`GamePadKeyGuard`, about 140MB). It's a *persistent* system app,
   so `pm disable` doesn't stop it: AMS starts it anyway. A Magisk `.replace` hides it.
   Only do this together with the phone SystemUI module (Step 7), which makes SystemUI the keyguard.

@@ -35,6 +35,20 @@ for g in /sys/devices/system/cpu/cpufreq/policy*/scaling_governor; do
   echo schedutil > "$g" && echo "$g -> schedutil"
 done
 
+# --- recents: the vendor "gamepad mode" flag (left at 1 by their console launcher) makes
+# the vendor SystemUI skip binding Launcher3's recents service, so swipe-up-and-hold shows
+# nothing. SystemUI only reads the flag at start, so if it was set, clear it and restart
+# SystemUI. Clearing it can make the vendor app switch Home to Launcher3, so put Lawnchair back.
+if [ "$(settings get system gamepad_launcher_style)" != "0" ]; then
+  settings put system gamepad_launcher_style 0 && echo "gamepad_launcher_style -> 0"
+  sleep 3
+  if pm path app.lawnchair >/dev/null 2>&1 && \
+     [ "$(cmd role get-role-holders android.app.role.HOME)" != "app.lawnchair" ]; then
+    cmd role add-role-holder android.app.role.HOME app.lawnchair 0 && echo "home -> lawnchair"
+  fi
+  pid=$(pidof com.android.systemui) && kill "$pid" && echo "restarted systemui"
+fi
+
 # --- wireless adb on a fixed port (legacy tcpip mode, still needs an authorised key)
 if [ "$(getprop service.adb.tcp.port)" != "5555" ]; then
   setprop service.adb.tcp.port 5555
