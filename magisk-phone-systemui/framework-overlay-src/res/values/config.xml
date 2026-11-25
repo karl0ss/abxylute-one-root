@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Vendor points this at com.levelinfinite.southpole.gamepad.keyguard.mtk; with the phone
+       SystemUI running, its KeyguardViewMediator must be the bound keyguard or it believes the
+       device is locked forever and the NotificationShade window keeps input focus. -->
+  <string name="config_keyguardComponent" translatable="false">com.android.systemui/com.android.systemui.keyguard.KeyguardService</string>
+</resources>

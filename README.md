@@ -185,11 +185,9 @@ Notes:
 - Set a new default home (e.g. Lawnchair) *before* freezing the vendor launcher:
   `cmd role add-role-holder android.app.role.HOME app.lawnchair 0`
 
-- **Heads-up: this firmware has no Android status bar / notification shade at all.**
-  The vendor UI was the only brightness/notifications panel. Once it's frozen you
-  lose those quick controls, and re-enabling `quicksetting` + `launcher` (even as home)
-  did **not** bring the panel back for us. Use Settings → Display for brightness.
-  Adaptive brightness is on by default and runs quite dim.
+- **Heads-up: out of the box this firmware has no status bar / notification shade.**
+  SystemUI runs its *TV* component list, and the vendor UI (now frozen) was the only
+  brightness/notifications panel. Step 7 brings back the real Android phone UI.
 
 Result on ours: MemAvailable went ~1.2GB → 1.8-2.1GB, swap from ~700MB → ~80MB,
 and the "sluggish device" problem was mostly **memory pressure + kswapd churn**,
@@ -214,6 +212,55 @@ To rebuild it yourself, run `gamepad-settings-shortcut/build.sh` (Android SDK
 build-tools 34 + platform 34; uses Docker for `javac` if there's no JDK). It signs
 with a throwaway local keystore. The prebuilt APK is signed with a different key, so
 uninstall it before installing your own build.
+
+---
+
+## Step 7 (optional): real status bar + notification shade (`magisk-phone-systemui/`)
+
+**Why there's no status bar:** the vendor's framework reports a UI-mode type that
+makes SystemUI resolve its `-television` resources, so it starts `TvStatusBar`
+(13 services, no status bar, no shade, no quick settings) instead of the phone
+`StatusBar`. Restarting SystemUI doesn't help, because it's not a boot-timing issue.
+Also, Android's lock screen (`config_keyguardComponent`) is bound to the vendor
+app `com.levelinfinite.southpole.gamepad.keyguard.mtk`, not SystemUI.
+
+The Magisk module adds two runtime resource overlays (RROs) in `/product/overlay`:
+
+| Overlay | Target | Overrides |
+|---|---|---|
+| `uk.karl.phonesystemui.overlay` | `com.android.systemui` | `config_systemUIServiceComponents` → phone list, `config_systemUIFactoryComponent` → `SystemUIFactory`, `config_enableKeyguardService` → true (default **and** `-television` qualifier) |
+| `uk.karl.phonesystemui.frameworkoverlay` | `android` | `config_keyguardComponent` → SystemUI's `KeyguardService` |
+
+Both are needed. With only the SystemUI overlay, the phone UI appears but its
+`KeyguardViewMediator` is never bound, so it believes the device is locked forever.
+The `NotificationShade` window then keeps input focus and **nothing but the shade
+responds to touch**.
+
+**Install (the order matters; keep a USB cable plugged in for recovery):**
+
+```bash
+adb shell locksettings set-disabled true     # no lock screen (the vendor one is no longer used)
+# Magisk app → Modules → Install from storage → phonesystemui-v4.zip → reboot
+adb shell cmd overlay enable uk.karl.phonesystemui.frameworkoverlay
+adb shell cmd overlay enable uk.karl.phonesystemui.overlay
+adb reboot
+```
+
+The overlays are *mutable* (not static), so they start **disabled** and can be turned
+off from adb **without root**:
+
+```bash
+adb shell cmd overlay disable uk.karl.phonesystemui.overlay
+adb shell cmd overlay disable uk.karl.phonesystemui.frameworkoverlay
+adb reboot
+```
+
+Wireless debugging switches off when SystemUI changes, so have USB adb ready.
+If all else fails, hold volume-down during boot for Magisk safe mode (this disables all modules).
+
+Result: status bar with clock/battery, notification shade, quick settings with
+brightness, heads-up notifications, gesture nav; Lawnchair works normally.
+Build from source with `magisk-phone-systemui/build.sh`.
 
 ---
 
